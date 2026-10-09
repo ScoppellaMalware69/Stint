@@ -1,0 +1,378 @@
+@import 'tailwindcss';
+
+/*
+ * Stint design tokens
+ * -------------------
+ * "Paper & ink": the interface chrome is monochrome (warm paper, ink-black actions,
+ * hairline rules). Colour is reserved for data (project colours, charts), status, and
+ * the vermilion "live" signal of a running timer.
+ *
+ * Raw values live in CSS custom properties below so light/dark themes swap in one
+ * place. Tailwind utilities (bg-surface, text-ink-2, ...) reference them through
+ * `@theme inline`. Every text token was checked against WCAG AA (4.5:1) on canvas,
+ * surface and sunken backgrounds; control borders (line-strong) reach 3:1.
+ * The data palette is the validated 8-hue categorical set (light/dark steps).
+ */
+
+@theme {
+  --color-*: initial;
+
+  --font-sans:
+    'IBM Plex Sans Variable', 'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system,
+    'Segoe UI', sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
+  --font-display: 'Instrument Serif', ui-serif, Georgia, 'Times New Roman', serif;
+
+  --text-display: 2.25rem;
+  --text-display--line-height: 1.05;
+  --text-display--letter-spacing: -0.005em;
+  --text-hero: 3.5rem;
+  --text-hero--line-height: 1;
+  --text-hero--letter-spacing: -0.03em;
+
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+
+  --shadow-card: 0 1px 0 rgb(var(--shadow-rgb) / 0.04);
+  --shadow-pop:
+    0 1px 2px rgb(var(--shadow-rgb) / 0.08), 0 12px 32px -8px rgb(var(--shadow-rgb) / 0.22);
+
+  --animate-fade-in: fade-in 160ms ease-out;
+  --animate-fade-out: fade-out 120ms ease-in forwards;
+  --animate-pop-in: pop-in 180ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-pop-out: pop-out 120ms ease-in forwards;
+  --animate-sheet-in: sheet-in 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-sheet-out: sheet-out 160ms ease-in forwards;
+  --animate-rise-in: rise-in 240ms cubic-bezier(0.16, 1, 0.3, 1);
+  --animate-live: live-pulse 2.4s ease-in-out infinite;
+
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes fade-out {
+    to {
+      opacity: 0;
+    }
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      transform: translateY(4px) scale(0.98);
+    }
+  }
+  @keyframes pop-out {
+    to {
+      opacity: 0;
+      transform: scale(0.98);
+    }
+  }
+  @keyframes sheet-in {
+    from {
+      transform: translateX(-100%);
+    }
+  }
+  @keyframes sheet-out {
+    to {
+      transform: translateX(-100%);
+    }
+  }
+  @keyframes rise-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+  }
+  @keyframes live-pulse {
+    0%,
+    100% {
+      box-shadow: 0 0 0 0 color-mix(in oklab, var(--signal) 45%, transparent);
+    }
+    50% {
+      box-shadow: 0 0 0 5px color-mix(in oklab, var(--signal) 0%, transparent);
+    }
+  }
+}
+
+@theme inline {
+  --color-canvas: var(--canvas);
+  --color-surface: var(--surface);
+  --color-sunken: var(--sunken);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-ink-inverse: var(--ink-inverse);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-overlay: var(--overlay);
+
+  --color-signal: var(--signal);
+  --color-signal-soft: var(--signal-soft);
+  --color-danger: var(--danger);
+  --color-danger-soft: var(--danger-soft);
+  --color-success: var(--success);
+  --color-success-soft: var(--success-soft);
+  --color-warning: var(--warning);
+  --color-warning-soft: var(--warning-soft);
+
+  --color-status-good: var(--status-good);
+  --color-status-warning: var(--status-warning);
+  --color-status-serious: var(--status-serious);
+  --color-status-critical: var(--status-critical);
+
+  --color-data-blue: var(--data-blue);
+  --color-data-orange: var(--data-orange);
+  --color-data-aqua: var(--data-aqua);
+  --color-data-yellow: var(--data-yellow);
+  --color-data-magenta: var(--data-magenta);
+  --color-data-green: var(--data-green);
+  --color-data-violet: var(--data-violet);
+  --color-data-red: var(--data-red);
+  --color-data-other: var(--data-other);
+  --color-chart-grid: var(--chart-grid);
+  --color-chart-axis: var(--chart-axis);
+  --color-meter-track: var(--meter-track);
+  --color-meter-track-warning: var(--meter-track-warning);
+  --color-meter-track-critical: var(--meter-track-critical);
+}
+
+/* A `dark:` variant that follows both the OS preference and the in-app toggle. */
+@custom-variant dark {
+  &:where([data-theme='dark'], [data-theme='dark'] *) {
+    @slot;
+  }
+  @media (prefers-color-scheme: dark) {
+    &:where(:root:not([data-theme='light']), :root:not([data-theme='light']) *) {
+      @slot;
+    }
+  }
+}
+
+/* ---------- Light theme (default) ---------- */
+:root {
+  color-scheme: light;
+  --canvas: #f4f2ec;
+  --surface: #fcfbf8;
+  --sunken: #edeae3;
+  --ink: #1a1916;
+  --ink-2: #56524a;
+  --ink-3: #67635a;
+  --ink-inverse: #fcfbf8;
+  --line: #e2ded5;
+  --line-strong: #8e897f;
+  --overlay: rgb(26 25 22 / 0.4);
+  --shadow-rgb: 40 32 18;
+
+  --signal: #b3380a;
+  --signal-soft: #fbe7dd;
+  --danger: #b42318;
+  --danger-soft: #fbe9e7;
+  --success: #0b6b1f;
+  --success-soft: #e5f1e4;
+  --warning: #8a5a00;
+  --warning-soft: #faf0d9;
+
+  /* Status hues are fixed across themes and always paired with an icon + label. */
+  --status-good: #0ca30c;
+  --status-warning: #fab219;
+  --status-serious: #ec835a;
+  --status-critical: #d03b3b;
+
+  --data-blue: #2a78d6;
+  --data-orange: #eb6834;
+  --data-aqua: #1baf7a;
+  --data-yellow: #eda100;
+  --data-magenta: #e87ba4;
+  --data-green: #008300;
+  --data-violet: #4a3aa7;
+  --data-red: #e34948;
+  --data-other: #8f8b82;
+  --chart-grid: #e7e3da;
+  --chart-axis: #c3bfb5;
+  --meter-track: #cde2fb;
+  --meter-track-warning: #fbeccb;
+  --meter-track-critical: #f5d6d6;
+}
+
+/* ---------- Dark theme ----------
+ * Declared twice on purpose: the media query follows the OS setting, the attribute
+ * selector follows the in-app toggle. `:not([data-theme='light'])` lets an explicit
+ * light choice win over a dark OS. */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+    --canvas: #121110;
+    --surface: #1b1a18;
+    --sunken: #242320;
+    --ink: #f2efe8;
+    --ink-2: #bdb8ad;
+    --ink-3: #959087;
+    --ink-inverse: #1a1916;
+    --line: #2e2c29;
+    --line-strong: #7a756c;
+    --overlay: rgb(0 0 0 / 0.6);
+    --shadow-rgb: 0 0 0;
+
+    --signal: #ff8a5c;
+    --signal-soft: #3a2117;
+    --danger: #f38a80;
+    --danger-soft: #3a1d1a;
+    --success: #4cc46a;
+    --success-soft: #16301c;
+    --warning: #e8b04a;
+    --warning-soft: #352a12;
+
+    --data-blue: #3987e5;
+    --data-orange: #d95926;
+    --data-aqua: #199e70;
+    --data-yellow: #c98500;
+    --data-magenta: #d55181;
+    --data-green: #008300;
+    --data-violet: #9085e9;
+    --data-red: #e66767;
+    --data-other: #77736b;
+    --chart-grid: #2c2b28;
+    --chart-axis: #3d3b37;
+    --meter-track: #0d366b;
+    --meter-track-warning: #3d3012;
+    --meter-track-critical: #42201f;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+  --canvas: #121110;
+  --surface: #1b1a18;
+  --sunken: #242320;
+  --ink: #f2efe8;
+  --ink-2: #bdb8ad;
+  --ink-3: #959087;
+  --ink-inverse: #1a1916;
+  --line: #2e2c29;
+  --line-strong: #7a756c;
+  --overlay: rgb(0 0 0 / 0.6);
+  --shadow-rgb: 0 0 0;
+
+  --signal: #ff8a5c;
+  --signal-soft: #3a2117;
+  --danger: #f38a80;
+  --danger-soft: #3a1d1a;
+  --success: #4cc46a;
+  --success-soft: #16301c;
+  --warning: #e8b04a;
+  --warning-soft: #352a12;
+
+  --data-blue: #3987e5;
+  --data-orange: #d95926;
+  --data-aqua: #199e70;
+  --data-yellow: #c98500;
+  --data-magenta: #d55181;
+  --data-green: #008300;
+  --data-violet: #9085e9;
+  --data-red: #e66767;
+  --data-other: #77736b;
+  --chart-grid: #2c2b28;
+  --chart-axis: #3d3b37;
+  --meter-track: #0d366b;
+  --meter-track-warning: #3d3012;
+  --meter-track-critical: #42201f;
+}
+
+/* ---------- Base ---------- */
+@layer base {
+  html {
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+    scrollbar-gutter: stable;
+  }
+
+  body {
+    min-height: 100dvh;
+    background-color: var(--canvas);
+    color: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 0.9375rem;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  @media (width >= 64rem) {
+    body {
+      font-size: 0.875rem;
+    }
+  }
+
+  h1,
+  h2,
+  h3 {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ink);
+    outline-offset: 2px;
+  }
+
+  ::selection {
+    background-color: var(--ink);
+    color: var(--ink-inverse);
+  }
+
+  /* Native date/time pickers follow the active theme. */
+  input[type='date']::-webkit-calendar-picker-indicator,
+  input[type='time']::-webkit-calendar-picker-indicator {
+    opacity: 0.6;
+    cursor: pointer;
+  }
+
+  [hidden] {
+    display: none !important;
+  }
+}
+
+/* ---------- Motion preferences ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------- Print (invoices) ---------- */
+@media print {
+  @page {
+    margin: 14mm;
+  }
+
+  /* Same specificity as the dark-theme selectors, declared later, so print always wins. */
+  :root,
+  :root:not([data-theme='light']),
+  :root[data-theme='dark'] {
+    color-scheme: light;
+    --canvas: #ffffff;
+    --surface: #ffffff;
+    --sunken: #f2f2f2;
+    --ink: #000000;
+    --ink-2: #333333;
+    --ink-3: #555555;
+    --line: #d4d4d4;
+    --line-strong: #8a8a8a;
+  }
+
+  body {
+    background: #ffffff;
+  }
+}
